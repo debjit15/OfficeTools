@@ -519,6 +519,62 @@
         </div>
     </div>
 </div>
+    
+    <div class="modal fade" id="leadEditModal" tabindex="-1" aria-labelledby="leadEditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            
+            <div class="modal-header">
+                <h5 class="modal-title" id="leadEditModalLabel">Edit Lead Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="editLeadForm">
+                    
+                    <input type="hidden" id="editLeadRtdbKey" name="rtdbKey">
+
+                    <div class="mb-3">
+                        <label for="editCustomerName" class="form-label">Customer Name</label>
+                        <input type="text" class="form-control" id="editCustomerName" name="customerName" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editMobileNumber" class="form-label">Mobile Number</label>
+                        <input type="text" class="form-control" id="editMobileNumber" name="mobileNumber">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editLeadFor" class="form-label">Lead For (Product/Service)</label>
+                        <input type="text" class="form-control" id="editLeadFor" name="leadFor">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editLeadBy" class="form-label">Lead By (Source)</label>
+                        <input type="text" class="form-control" id="editLeadBy" name="leadBy">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editLastContact" class="form-label">Last Contact</label>
+                        <input type="datetime-local" class="form-control" id="editLastContact" name="lastContact">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editRemark" class="form-label">Remark</label>
+                        <textarea class="form-control" id="editRemark" name="remark" rows="3"></textarea>
+                    </div>
+                    
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveLeadChanges">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
