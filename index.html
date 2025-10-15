@@ -107,11 +107,23 @@
         <div class="dashboard-container row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
          
            <div class="col">
-  <div class="alert alert-info d-flex align-items-center justify-content-between" id="installBanner" role="alert">
-    <span>🚀 Install GeoTag Tools for a full app experience!</span>
-    <button class="btn btn-primary btn-sm p-0" id="installButton" 
-            style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-      <img src="./Assets/icons/icon-32x32.png" alt="Install" style="width:24px; height:24px;">
+  <div id="installBanner" 
+       class="alert alert-info shadow-sm border-0 d-flex align-items-center justify-content-between px-3 py-2 rounded-4 d-none"
+       role="alert" 
+       style="background: linear-gradient(90deg, #e3f2fd, #bbdefb); color:#0d47a1;">
+
+    <div class="d-flex align-items-center gap-2">
+      <img src="./Assets/icons/icon-72x72.png" alt="App Icon" class="rounded-3" 
+           style="width:36px; height:36px; object-fit:cover;">
+      <div>
+        <div class="fw-semibold" style="font-size: 0.95rem;">Install GeoTag Tools</div>
+        <small style="font-size: 0.8rem; color:#1565c0;">Get offline access and faster load times!</small>
+      </div>
+    </div>
+
+    <button id="installButton" class="btn btn-primary p-0 shadow-sm"
+            style="width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+      <span class="material-symbols-outlined" style="font-size:22px;">download</span>
     </button>
   </div>
 </div>
