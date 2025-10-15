@@ -361,51 +361,30 @@
       </div>
 
       <div class="modal-body">
-        <div class="input-group mb-3">
-          <span class="input-group-text bg-light"><span class="material-symbols-outlined">search</span></span>
-          <input type="text" id="searchInput" class="form-control" placeholder="Search by customer, lead for, or agent...">
-        </div>
+        <div class="row mb-3">
+    <div class="col-12">
+        <input type="text" id="leadSearchInput" class="form-control" placeholder="Search by Name, Mobile, Lead For, or Remark...">
+    </div>
+</div>
 
-        <div class="mb-2 text-end">
-          <small class="text-muted">Sorted by latest contact date</small>
-        </div>
 
         <div id="noteTableContainer" class="table-responsive">
           <table class="table table-hover align-middle" id="notesTable">
             <thead class="table-primary lead-table-header">
-              <tr>
-                <th>#</th>
-                <th>Customer</th>
-                <th>Mobile</th>
-                <th>Lead For</th>
-                <th>Lead By</th>
-                <th>Next Contact</th>
-                <th>Remark</th>
-                <th>Added On</th>
-                <th>Actions</th>
-              </tr>
+            <tr>
+        <th>#</th>
+        <th>Customer Name</th>
+        <th>Mobile Number</th>
+        <th>Lead For</th>
+        <th>Lead By</th>
+        <th>Last Contact</th>
+        <th>Remark</th>
+        <th>Date Added</th>
+        <th>Last Edited</th>  <th>Call</th>
+        <th>Actions</th>
+    </tr>
             </thead>
             <tbody>
-              <tr>
-                  <td>1</td>
-                  <td>John Doe</td>
-                  <td>9876543210</td>
-                  <td>Personal Loan</td>
-                  <td>Agent Smith</td>
-                  <td>2025-10-25</td>
-                  <td>Needs follow up next week.</td>
-                  <td>2025-10-15</td>
-                  <td>
-                      <div class="btn-group btn-group-sm" role="group">
-                          <button type="button" class="btn btn-warning" title="Edit Lead">
-                              <span class="material-symbols-outlined fs-6">edit</span>
-                          </button>
-                          <button type="button" class="btn btn-danger" title="Delete Lead">
-                              <span class="material-symbols-outlined fs-6">delete</span>
-                          </button>
-                      </div>
-                  </td>
-              </tr>
               </tbody>
           </table>
         </div>
