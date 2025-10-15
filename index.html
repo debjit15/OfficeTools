@@ -107,11 +107,14 @@
         <div class="dashboard-container row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
          
            <div class="col">
-            <div class="alert alert-info d-none" id="installBanner" role="alert">
-    🚀 Install GeoTag Tools for a full app experience!
-    <button class="btn btn-sm btn-primary ms-3" id="installButton">Install App</button>
+  <div class="alert alert-info d-flex align-items-center justify-content-between" id="installBanner" role="alert">
+    <span>🚀 Install GeoTag Tools for a full app experience!</span>
+    <button class="btn btn-primary btn-sm p-0" id="installButton" 
+            style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+      <img src="/Assets/icons/icon-32x32.png" alt="Install" style="width:24px; height:24px;">
+    </button>
+  </div>
 </div>
-           </div>
 
             <div class="col">
                 <a href="geo.html" class="tool-card" aria-label="Launch GeoTagging Image tool">
