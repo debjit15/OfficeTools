@@ -332,6 +332,7 @@ async function saveLeadEntry(leadData) {
   const dataToSend = {
     ...leadData,
     DateAdded: new Date().toLocaleString(),
+    LastEdited: 'N/A', // Set default for initial save
     timestamp: firebase.database.serverTimestamp(),
   };
 
@@ -346,6 +347,32 @@ async function saveLeadEntry(leadData) {
     return false;
   }
 }
+
+async function saveEditedLead(rtdbKey, updatedData) {
+    if (!window.FIREBASE_USER_UID || !window.RTDB) {
+        window.showToast("Cannot update data. User not authenticated.", 'danger');
+        return false;
+    }
+
+    const path = `datatable/${window.FIREBASE_USER_UID}/tabledata/${rtdbKey}`;
+    const dataToUpdate = {
+        ...updatedData,
+        LastEdited: new Date().toLocaleString(), // Update the edit date
+    };
+
+    try {
+        const leadRef = firebase.database.ref(window.RTDB, path);
+        // Use update to only change the fields provided
+        await firebase.database.update(leadRef, dataToUpdate);
+        window.showToast("✏️ Lead updated successfully!", 'success');
+        return true;
+    } catch (error) {
+        console.error("❌ Update Error:", error);
+        window.showToast(`Failed to update lead: ${error.message}`, 'danger');
+        return false;
+    }
+}
+
 
 async function deleteSheetDBRow(rtdbKey) {
   if (!window.FIREBASE_USER_UID || !window.RTDB) {
@@ -368,22 +395,48 @@ async function deleteSheetDBRow(rtdbKey) {
 }
 
 // ==========================
+// 🔹 SEARCH/FILTER FUNCTION
+// ==========================
+
+function filterLeads(searchTerm) {
+    if (!currentUserData) return [];
+
+    const lowerCaseSearch = searchTerm.toLowerCase();
+
+    // If search term is empty, return all data
+    if (!lowerCaseSearch) {
+        return currentUserData;
+    }
+
+    return currentUserData.filter(lead => {
+        // Check relevant fields for a match
+        return (lead.CustomerName && lead.CustomerName.toLowerCase().includes(lowerCaseSearch)) ||
+               (lead.MobileNumber && lead.MobileNumber.toLowerCase().includes(lowerCaseSearch)) ||
+               (lead.LeadFor && lead.LeadFor.toLowerCase().includes(lowerCaseSearch)) ||
+               (lead.Remark && lead.Remark.toLowerCase().includes(lowerCaseSearch));
+    });
+}
+
+
+// ==========================
 // 🔹 TABLE RENDER FUNCTION
 // ==========================
 
-function renderLeadsTable() {
+function renderLeadsTable(dataToRender) {
   const tableBody = $('#notesTable tbody');
   tableBody.empty();
 
-  if (!currentUserData || currentUserData.length === 0) {
-    tableBody.append('<tr><td colspan="10" class="text-center text-muted">No lead data found.</td></tr>');
+  const data = dataToRender || currentUserData; // Use filtered data if provided
+
+  if (!data || data.length === 0) {
+    tableBody.append('<tr><td colspan="11" class="text-center text-muted">No lead data found.</td></tr>');
     return;
   }
 
   // Sort by DateAdded descending
-  currentUserData.sort((a, b) => new Date(b.DateAdded) - new Date(a.DateAdded));
+  data.sort((a, b) => new Date(b.DateAdded) - new Date(a.DateAdded));
 
-  currentUserData.forEach((row, index) => {
+  data.forEach((row, index) => {
     const rtdbKey = row.RTDBKey || '';
     const {
       CustomerName = '',
@@ -393,14 +446,19 @@ function renderLeadsTable() {
       LastContact = '',
       Remark = '-',
       DateAdded = '',
+      LastEdited = 'N/A', // New column
     } = row;
 
     const callButton = (MobileNumber && MobileNumber.length > 5)
-      ? `<a href="tel:${MobileNumber}" class="btn btn-sm btn-info text-white" title="Call ${CustomerName}">
+      ? `<a href="tel:${MobileNumber}" class="btn btn-sm btn-info text-white me-1" title="Call ${CustomerName}">
            <span class="material-symbols-outlined fs-6">call</span>
          </a>`
-      : `<button class="btn btn-sm btn-secondary" disabled title="No phone number">
+      : `<button class="btn btn-sm btn-secondary me-1" disabled title="No phone number">
            <span class="material-symbols-outlined fs-6">call</span>
+         </button>`;
+         
+    const editButton = `<button class="btn btn-sm btn-warning edit-btn me-1" data-key="${rtdbKey}" title="Edit Remarks/Contact">
+           <span class="material-symbols-outlined fs-6">edit</span>
          </button>`;
 
     const rowMarkup = `
@@ -413,8 +471,10 @@ function renderLeadsTable() {
         <td>${LastContact}</td>
         <td>${Remark}</td>
         <td>${DateAdded}</td>
+        <td>${LastEdited}</td>
         <td>${callButton}</td>
         <td>
+          ${editButton}
           <button class="btn btn-sm btn-danger delete-btn" data-key="${rtdbKey}" title="Delete Lead">
             <span class="material-symbols-outlined fs-6">delete</span>
           </button>
@@ -425,7 +485,7 @@ function renderLeadsTable() {
     tableBody.append(rowMarkup);
   });
 
-  // Delete event listener
+  // Attach event listeners after rendering
   $('.delete-btn').off('click').on('click', async function () {
     const key = $(this).data('key');
     if (!key) return window.showToast("Missing record ID.", 'danger');
@@ -435,7 +495,35 @@ function renderLeadsTable() {
       if (success) await loadAndRenderData();
     }
   });
+  
+  // Attach Edit event listener
+  $('.edit-btn').off('click').on('click', handleEditClick);
 }
+
+// ==========================
+// 🔹 EDIT LEAD FUNCTIONALITY
+// ==========================
+
+function handleEditClick() {
+    const key = $(this).data('key');
+    const lead = currentUserData.find(l => l.RTDBKey === key);
+    
+    if (!lead) return window.showToast("Lead data not found.", 'danger');
+    
+    // Populate the Edit Modal form fields
+    $('#editLeadRtdbKey').val(key);
+    $('#editCustomerName').val(lead.CustomerName).prop('disabled', true); // Name remains disabled
+    $('#editMobileNumber').val(lead.MobileNumber);
+    $('#editLeadFor').val(lead.LeadFor);
+    $('#editLeadBy').val(lead.LeadBy);
+    $('#editLastContact').val(lead.LastContact);
+    $('#editRemark').val(lead.Remark);
+    
+    // Show the modal
+    const editModal = new bootstrap.Modal(document.getElementById('leadEditModal'));
+    editModal.show();
+}
+
 
 // ==========================
 // 🔹 LOAD + INIT FUNCTION
@@ -443,8 +531,12 @@ function renderLeadsTable() {
 
 async function loadAndRenderData() {
   window.showToast("Loading lead data...", 'info');
+  // 1. Fetch all data
   currentUserData = await fetchSheetDBData();
-  renderLeadsTable();
+  // 2. Clear search bar
+  $('#leadSearchInput').val('');
+  // 3. Render all data initially
+  renderLeadsTable(currentUserData);
   window.showToast(`✅ Loaded ${currentUserData.length} leads.`, 'success');
 }
 
@@ -458,7 +550,7 @@ $(document).ready(function () {
     if (typeof disableTools === 'function') disableTools();
   }
 
-  // 🔸 Lead Entry Form Submit
+  // 🔸 Lead Entry Form Submit (Initial Add)
   $('#noteEntryForm').on('submit', async function (e) {
     e.preventDefault();
     if (!isAuthReady) return window.showToast("Please log in to submit data.", 'danger');
@@ -480,7 +572,31 @@ $(document).ready(function () {
     }
   });
   
-  // 🆕 🔸 QUICK NOTE FORM SUBMIT - Added to match new HTML
+  // 🔸 Lead Edit Form Submit (Update Existing)
+  $('#leadEditForm').on('submit', async function (e) {
+      e.preventDefault();
+      if (!isAuthReady) return window.showToast("Please log in to update data.", 'danger');
+      
+      const rtdbKey = $('#editLeadRtdbKey').val();
+      
+      const updatedFields = {
+          MobileNumber: $('#editMobileNumber').val().trim(),
+          LeadFor: $('#editLeadFor').val(),
+          LeadBy: $('#editLeadBy').val().trim() || 'N/A',
+          LastContact: $('#editLastContact').val(),
+          Remark: $('#editRemark').val().trim() || 'N/A',
+      };
+      
+      const success = await saveEditedLead(rtdbKey, updatedFields);
+      
+      if (success) {
+          bootstrap.Modal.getInstance(document.getElementById('leadEditModal')).hide();
+          await loadAndRenderData(); // Reload all data to refresh table
+      }
+  });
+
+
+  // 🔸 QUICK NOTE FORM SUBMIT
   $('#quickNoteForm').on('submit', async function (e) {
     e.preventDefault();
     if (!isAuthReady) return window.showToast("Please log in to save a note.", 'danger');
@@ -511,6 +627,14 @@ $(document).ready(function () {
     const leadEntryModal = new bootstrap.Modal(document.getElementById('leadEntryModal'));
     leadEntryModal.show();
   });
+  
+  // 🆕 🔸 Lead Search Filter Input
+  $('#leadSearchInput').on('input', function() {
+      const searchTerm = $(this).val();
+      const filteredData = filterLeads(searchTerm);
+      renderLeadsTable(filteredData);
+  });
+
 
   // 🔸 Number to Indian words converter (if applicable)
   $('#digitInput').on('input', function () {
