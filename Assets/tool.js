@@ -142,7 +142,7 @@ window.firebaseAuthSuccessHandler = function(user) {
 };
 
 window.firebaseAuthRequiredHandler = function() {
-   // disableTools();
+    disableTools();
 };
 
 window.signOutUser = async function() {
@@ -349,21 +349,33 @@ async function saveLeadEntry(leadData) {
 }
 
 async function saveEditedLead(rtdbKey, updatedData) {
+    // Ensure the necessary global variables and Firebase objects are available.
     if (!window.FIREBASE_USER_UID || !window.RTDB) {
-        window.showToast("Cannot update data. User not authenticated.", 'danger');
+        window.showToast("Cannot update data. User not authenticated or RTDB object missing.", 'danger');
         return false;
     }
 
+
+    // Standard v9 import: import { ref, update } from "firebase/database";
+    const ref = window.firebase.database.ref; // Placeholder for v9 'ref' function
+    const update = window.firebase.database.update; // Placeholder for v9 'update' function
+
+    // Define the full path to the lead data
     const path = `datatable/${window.FIREBASE_USER_UID}/tabledata/${rtdbKey}`;
+    
+    // Prepare the data to be sent, including the edit timestamp
     const dataToUpdate = {
         ...updatedData,
         LastEdited: new Date().toLocaleString(), // Update the edit date
     };
 
     try {
-        const leadRef = firebase.database.ref(window.RTDB, path);
-        // Use update to only change the fields provided
-        await firebase.database.update(leadRef, dataToUpdate);
+        // 1. Get a reference to the specific lead location using v9 syntax
+        const leadRef = ref(window.RTDB, path);
+        
+        // 2. Use the v9 'update' function to apply the changes
+        await update(leadRef, dataToUpdate);
+        
         window.showToast("✏️ Lead updated successfully!", 'success');
         return true;
     } catch (error) {
@@ -545,106 +557,107 @@ async function loadAndRenderData() {
 // ==========================
 
 $(document).ready(function () {
-  // Disable tools if not authenticated
-  if (!window.isFirebaseAuthComplete && !firebase.auth.currentUser) {
-    if (typeof disableTools === 'function') disableTools();
-  }
-
-  // 🔸 Lead Entry Form Submit (Initial Add)
-  $('#noteEntryForm').on('submit', async function (e) {
-    e.preventDefault();
-    if (!isAuthReady) return window.showToast("Please log in to submit data.", 'danger');
-
-    const leadData = {
-      CustomerName: $('#customerName').val().trim(),
-      MobileNumber: $('#mobileNumber').val().trim(),
-      LeadFor: $('#leadFor').val(),
-      LeadBy: $('#leadBy').val().trim() || 'N/A',
-      LastContact: $('#lastContact').val(),
-      Remark: $('#remark').val().trim() || 'N/A',
-    };
-
-    const success = await saveLeadEntry(leadData);
-    if (success) {
-      $('#noteEntryForm')[0].reset();
-      bootstrap.Modal.getInstance(document.getElementById('leadEntryModal')).hide();
-      await loadAndRenderData();
-    }
-  });
-  
-  // 🔸 Lead Edit Form Submit (Update Existing)
-  $('#leadEditForm').on('submit', async function (e) {
-      e.preventDefault();
-      if (!isAuthReady) return window.showToast("Please log in to update data.", 'danger');
-      
-      const rtdbKey = $('#editLeadRtdbKey').val();
-      
-      const updatedFields = {
-          MobileNumber: $('#editMobileNumber').val().trim(),
-          LeadFor: $('#editLeadFor').val(),
-          LeadBy: $('#editLeadBy').val().trim() || 'N/A',
-          LastContact: $('#editLastContact').val(),
-          Remark: $('#editRemark').val().trim() || 'N/A',
-      };
-      
-      const success = await saveEditedLead(rtdbKey, updatedFields);
-      
-      if (success) {
-          bootstrap.Modal.getInstance(document.getElementById('leadEditModal')).hide();
-          await loadAndRenderData(); // Reload all data to refresh table
-      }
-  });
-
-
-  // 🔸 QUICK NOTE FORM SUBMIT
-  $('#quickNoteForm').on('submit', async function (e) {
-    e.preventDefault();
-    if (!isAuthReady) return window.showToast("Please log in to save a note.", 'danger');
-
-    const noteText = $('#noteTextarea').val().trim();
-
-    if (!noteText) {
-      window.showToast("Note cannot be empty.", 'warning');
-      return;
+    // Disable tools if not authenticated
+    if (!window.isFirebaseAuthComplete && !firebase.auth.currentUser) {
+        if (typeof disableTools === 'function') disableTools();
     }
 
-    const success = await saveQuickNote(noteText);
+    // =================================================================
+    // 🔸 Lead Entry Form Submit (Initial Add)
+    // =================================================================
+    $('#noteEntryForm').on('submit', async function (e) {
+        e.preventDefault();
+        if (!isAuthReady) return window.showToast("Please log in to submit data.", 'danger');
 
-    if (success) {
-      // Clear the textarea after saving
-      $('#noteTextarea').val('');
-      
-      // Reload and render the notes list inside the modal immediately
-      await loadAndRenderQuickNotes(); 
-      window.showToast("Note saved and updated.", 'success');
-    }
-  });
+        const leadData = {
+            CustomerName: $('#customerName').val().trim(),
+            MobileNumber: $('#mobileNumber').val().trim(),
+            LeadFor: $('#leadFor').val(),
+            LeadBy: $('#leadBy').val().trim() || 'N/A',
+            LastContact: $('#lastContact').val(),
+            Remark: $('#remark').val().trim() || 'N/A',
+        };
+
+        const success = await saveLeadEntry(leadData);
+        if (success) {
+            $('#noteEntryForm')[0].reset();
+            bootstrap.Modal.getInstance(document.getElementById('leadEntryModal')).hide();
+            // Note: Use a more targeted refresh if possible, but loadAndRenderData works.
+            await loadAndRenderData();
+        }
+    });
+
+    // =================================================================
+    // 🔸 Lead Edit Save Button Click (Update Existing)
+    // 💡 FIX: Removed the redundant '#leadEditForm' submit listener.
+    // The save logic is now attached to the modal's specific footer button.
+    // NOTE: This assumes 'handleSaveClick' (which calls saveEditedLead) is defined elsewhere.
+    // =================================================================
+    $('#saveLeadChanges').on('click', handleSaveClick);
 
 
-  // 🔸 "Add Lead" from Manage Modal
-  $('#addLeadFromManageBtn').on('click', function () {
-    bootstrap.Modal.getInstance(document.getElementById('leadManageModal')).hide();
-    const leadEntryModal = new bootstrap.Modal(document.getElementById('leadEntryModal'));
-    leadEntryModal.show();
-  });
-  
-  // 🆕 🔸 Lead Search Filter Input
-  $('#leadSearchInput').on('input', function() {
-      const searchTerm = $(this).val();
-      const filteredData = filterLeads(searchTerm);
-      renderLeadsTable(filteredData);
-  });
+    // =================================================================
+    // 🔸 QUICK NOTE FORM SUBMIT
+    // =================================================================
+    $('#quickNoteForm').on('submit', async function (e) {
+        e.preventDefault();
+        if (!isAuthReady) return window.showToast("Please log in to save a note.", 'danger');
+
+        const noteText = $('#noteTextarea').val().trim();
+
+        if (!noteText) {
+            window.showToast("Note cannot be empty.", 'warning');
+            return;
+        }
+
+        const success = await saveQuickNote(noteText);
+
+        if (success) {
+            // Clear the textarea after saving
+            $('#noteTextarea').val('');
+            
+            // Reload and render the notes list inside the modal immediately
+            await loadAndRenderQuickNotes(); 
+            window.showToast("Note saved and updated.", 'success');
+        }
+    });
 
 
-  // 🔸 Number to Indian words converter (if applicable)
-  $('#digitInput').on('input', function () {
-    const value = parseInt($(this).val());
-    const output = $('#spellingOutput');
-    if (isNaN(value)) output.text('Enter a valid number.');
-    else if (value < 0) output.text('Negative numbers not supported.');
-    else output.text(numberToIndianWords(value));
-  });
+    // =================================================================
+    // 🔸 UI/Modal Control Events
+    // =================================================================
+    // 🔸 "Add Lead" from Manage Modal
+    $('#addLeadFromManageBtn').on('click', function () {
+        // Hide the current modal instance
+        bootstrap.Modal.getInstance(document.getElementById('leadManageModal')).hide();
+        // Show the target modal
+        const leadEntryModal = new bootstrap.Modal(document.getElementById('leadEntryModal'));
+        leadEntryModal.show();
+    });
+    
+    // =================================================================
+    // 🆕 🔸 Lead Search Filter Input
+    // =================================================================
+    $('#leadSearchInput').on('input', function() {
+        const searchTerm = $(this).val();
+        // Assuming 'currentUserData' holds the full unfiltered data
+        const filteredData = filterLeads(searchTerm, currentUserData); 
+        renderLeadsTable(filteredData);
+    });
+
+
+    // =================================================================
+    // 🔸 Number to Indian words converter (if applicable)
+    // =================================================================
+    $('#digitInput').on('input', function () {
+        const value = parseInt($(this).val());
+        const output = $('#spellingOutput');
+        if (isNaN(value)) output.text('Enter a valid number.');
+        else if (value < 0) output.text('Negative numbers not supported.');
+        else output.text(numberToIndianWords(value));
+    });
 });
+
 
 
 const DENOMINATIONS = [500, 200, 100, 50, 20, 10, 5, 2, 1];
@@ -718,12 +731,6 @@ $('#denominationModal').on('show.bs.modal', function () {
 // =======================================================
 let emiChart; // Variable to hold the Chart.js instance
 
-/**
- * The core EMI formula: EMI = [P x R x (1+R)^N] / [(1+R)^N-1]
- * @param {number} P Principal loan amount
- * @param {number} R Monthly interest rate (decimal)
- * @param {number} N Total number of months
- */
 function calculateEMI(P, R, N) {
     if (R === 0) return P / N; // Simple division if interest is zero
     
