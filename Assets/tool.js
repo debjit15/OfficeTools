@@ -24,10 +24,6 @@ window.showToast = function(message, type = 'info') {
     });
 };
 
-/**
- * Manual Google Sign-In using Firebase Popup
- * This is triggered by the button click in index.html.
- */
 window.googleLogin = async function() {
     if (!window.firebase || !window.firebase.auth || !window.firebase.signInWithPopup) {
         window.showToast("Authentication services are not initialized. Check Firebase module script.", 'danger');
@@ -146,7 +142,7 @@ window.firebaseAuthSuccessHandler = function(user) {
 };
 
 window.firebaseAuthRequiredHandler = function() {
-    disableTools();
+   // disableTools();
 };
 
 window.signOutUser = async function() {
@@ -192,55 +188,6 @@ function numberToIndianWords(n) {
     }
     
     return inWords(n).toUpperCase();
-}
-
-
-async function fetchSheetDBData() {
-    if (!window.FIREBASE_USER_UID || !window.RTDB) { return []; }
-    try {
-        const path = `datatable/${window.FIREBASE_USER_UID}/tabledata`;
-        const userLeadsRef = firebase.database.ref(window.RTDB, path);
-        const snapshot = await firebase.database.get(userLeadsRef);
-        const data = snapshot.val();
-        
-        if (!data) { return []; }
-
-        return Object.keys(data).map(key => ({
-            ...data[key],
-            RTDBKey: key, 
-        }));
-
-    } catch (error) {
-        window.showToast(`Failed to load lead data: ${error.message}`, 'danger');
-        return [];
-    }
-}
-
-async function saveLeadEntry(leadData) {
-    if (!window.FIREBASE_USER_UID || !window.RTDB) {
-        window.showToast("Cannot save data. User not authenticated.", 'danger');
-        return false;
-    }
-    
-    const path = `datatable/${window.FIREBASE_USER_UID}/tabledata`;
-    const timestamp = new Date().toLocaleString();
-    
-    const dataToSend = {
-        ...leadData,
-        DateAdded: timestamp,
-        timestamp: firebase.database.serverTimestamp(),
-    };
-    
-    try {
-        const userLeadsRef = firebase.database.ref(window.RTDB, path);
-        await firebase.database.push(userLeadsRef, dataToSend);
-
-        window.showToast("Lead entry saved successfully!", 'success');
-        return true;
-    } catch (error) {
-        window.showToast(`Failed to save lead: ${error.message}`, 'danger');
-        return false;
-    }
 }
 
 async function fetchQuickNotes() {
@@ -348,178 +295,231 @@ async function saveQuickNote(noteText) {
     }
 }
 
-async function deleteSheetDBRow(rtdbKey) {
-    if (!window.FIREBASE_USER_UID || !window.RTDB) {
-        window.showToast("Cannot delete data. User not authenticated.", 'danger');
-        return false;
-    }
+// ==========================
+// 🔹 FIREBASE LEAD FUNCTIONS
+// ==========================
 
-    try {
-        const path = `datatable/${window.FIREBASE_USER_UID}/tabledata/${rtdbKey}`;
-        const leadRef = firebase.database.ref(window.RTDB, path);
-        await firebase.database.remove(leadRef);
-        
-        window.showToast("Lead successfully deleted from Firebase!", 'success');
-        return true;
-    } catch (error) {
-        window.showToast(`Failed to delete lead: ${error.message}`, 'danger');
-        return false;
-    }
+async function fetchSheetDBData() {
+  if (!window.FIREBASE_USER_UID || !window.RTDB) return [];
+
+  try {
+    const path = `datatable/${window.FIREBASE_USER_UID}/tabledata`;
+    const userLeadsRef = firebase.database.ref(window.RTDB, path);
+    const snapshot = await firebase.database.get(userLeadsRef);
+    const data = snapshot.val();
+
+    if (!data) return [];
+
+    return Object.keys(data).map(key => ({
+      ...data[key],
+      RTDBKey: key,
+    }));
+
+  } catch (error) {
+    console.error("❌ Fetch Error:", error);
+    window.showToast(`Failed to load lead data: ${error.message}`, 'danger');
+    return [];
+  }
 }
+
+async function saveLeadEntry(leadData) {
+  if (!window.FIREBASE_USER_UID || !window.RTDB) {
+    window.showToast("Cannot save data. User not authenticated.", 'danger');
+    return false;
+  }
+
+  const path = `datatable/${window.FIREBASE_USER_UID}/tabledata`;
+  const dataToSend = {
+    ...leadData,
+    DateAdded: new Date().toLocaleString(),
+    timestamp: firebase.database.serverTimestamp(),
+  };
+
+  try {
+    const userLeadsRef = firebase.database.ref(window.RTDB, path);
+    await firebase.database.push(userLeadsRef, dataToSend);
+    window.showToast("✅ Lead entry saved successfully!", 'success');
+    return true;
+  } catch (error) {
+    console.error("❌ Save Error:", error);
+    window.showToast(`Failed to save lead: ${error.message}`, 'danger');
+    return false;
+  }
+}
+
+async function deleteSheetDBRow(rtdbKey) {
+  if (!window.FIREBASE_USER_UID || !window.RTDB) {
+    window.showToast("Cannot delete data. User not authenticated.", 'danger');
+    return false;
+  }
+
+  try {
+    const path = `datatable/${window.FIREBASE_USER_UID}/tabledata/${rtdbKey}`;
+    const leadRef = firebase.database.ref(window.RTDB, path);
+    await firebase.database.remove(leadRef);
+
+    window.showToast("🗑️ Lead deleted successfully!", 'success');
+    return true;
+  } catch (error) {
+    console.error("❌ Delete Error:", error);
+    window.showToast(`Failed to delete lead: ${error.message}`, 'danger');
+    return false;
+  }
+}
+
+// ==========================
+// 🔹 TABLE RENDER FUNCTION
+// ==========================
 
 function renderLeadsTable() {
-    const tableBody = $('#notesTable tbody');
-    tableBody.empty();
-    
-    currentUserData.sort((a, b) => new Date(b.DateAdded) - new Date(a.DateAdded));
+  const tableBody = $('#notesTable tbody');
+  tableBody.empty();
 
-    if (currentUserData.length === 0) {
-        tableBody.append('<tr><td colspan="10" class="text-center text-muted">No lead data found for this user.</td></tr>');
-        return;
+  if (!currentUserData || currentUserData.length === 0) {
+    tableBody.append('<tr><td colspan="10" class="text-center text-muted">No lead data found.</td></tr>');
+    return;
+  }
+
+  // Sort by DateAdded descending
+  currentUserData.sort((a, b) => new Date(b.DateAdded) - new Date(a.DateAdded));
+
+  currentUserData.forEach((row, index) => {
+    const rtdbKey = row.RTDBKey || '';
+    const {
+      CustomerName = '',
+      MobileNumber = '-',
+      LeadFor = '-',
+      LeadBy = '-',
+      LastContact = '',
+      Remark = '-',
+      DateAdded = '',
+    } = row;
+
+    const callButton = (MobileNumber && MobileNumber.length > 5)
+      ? `<a href="tel:${MobileNumber}" class="btn btn-sm btn-info text-white" title="Call ${CustomerName}">
+           <span class="material-symbols-outlined fs-6">call</span>
+         </a>`
+      : `<button class="btn btn-sm btn-secondary" disabled title="No phone number">
+           <span class="material-symbols-outlined fs-6">call</span>
+         </button>`;
+
+    const rowMarkup = `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${CustomerName}</td>
+        <td>${MobileNumber}</td>
+        <td>${LeadFor}</td>
+        <td>${LeadBy}</td>
+        <td>${LastContact}</td>
+        <td>${Remark}</td>
+        <td>${DateAdded}</td>
+        <td>${callButton}</td>
+        <td>
+          <button class="btn btn-sm btn-danger delete-btn" data-key="${rtdbKey}" title="Delete Lead">
+            <span class="material-symbols-outlined fs-6">delete</span>
+          </button>
+        </td>
+      </tr>
+    `;
+
+    tableBody.append(rowMarkup);
+  });
+
+  // Delete event listener
+  $('.delete-btn').off('click').on('click', async function () {
+    const key = $(this).data('key');
+    if (!key) return window.showToast("Missing record ID.", 'danger');
+
+    if (confirm("⚠️ Are you sure you want to delete this lead? This cannot be undone.")) {
+      const success = await deleteSheetDBRow(key);
+      if (success) await loadAndRenderData();
     }
-
-    currentUserData.forEach((row, index) => {
-        const rtdbKey = row.RTDBKey || ''; 
-        const customerName = (row.CustomerName)?.toString() || '';
-        const mobileNumber = (row.MobileNumber)?.toString() || '-';
-        const leadFor = (row.LeadFor)?.toString() || '-';
-        const leadBy = (row.LeadBy)?.toString() || '-';
-        const lastContact = (row.LastContact)?.toString() || '';
-        const remark = (row.Remark)?.toString() || '-';
-        const dateAdded = (row.DateAdded)?.toString() || ''; 
-
-        const callButton = mobileNumber !== '-' && mobileNumber.length > 5 
-            ? `<a href="tel:${mobileNumber}" class="btn btn-sm btn-info text-white" aria-label="Call ${customerName}">
-                 <span class="material-symbols-outlined fs-6" style="vertical-align: middle;">call</span>
-               </a>`
-            : `<button class="btn btn-sm btn-secondary" disabled aria-label="No phone number available">
-                 <span class="material-symbols-outlined fs-6" style="vertical-align: middle;">call</span>
-               </button>`;
-
-
-        const rowMarkup = `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${customerName}</td>
-                <td>${mobileNumber}</td>
-                <td>${leadFor}</td>
-                <td>${leadBy}</td>
-                <td>${lastContact}</td>
-                <td>${remark}</td>
-                <td>${dateAdded}</td>
-                <td>${callButton}</td>
-                <td>
-                    <button class="btn btn-sm btn-danger delete-btn" data-key="${rtdbKey}" aria-label="Delete entry for ${customerName}">
-                        <span class="material-symbols-outlined fs-6" style="vertical-align: middle;">delete</span>
-                    </button>
-                </td>
-            </tr>
-        `;
-        tableBody.append(rowMarkup);
-    });
-
-    $('.delete-btn').off('click').on('click', async function() {
-        if (!confirm("Are you sure you want to delete this lead entry? This cannot be undone.")) return;
-        
-        const rtdbKey = $(this).data('key');
-        if (!rtdbKey) {
-            window.showToast("Cannot delete: Missing unique ID.", 'danger');
-            return;
-        }
-
-        const success = await deleteSheetDBRow(rtdbKey);
-        if (success) {
-            await loadAndRenderData();
-        }
-    });
+  });
 }
+
+// ==========================
+// 🔹 LOAD + INIT FUNCTION
+// ==========================
 
 async function loadAndRenderData() {
-    window.showToast("Loading lead data...", 'info');
-    currentUserData = await fetchSheetDBData();
-    renderLeadsTable();
-    window.showToast(`Loaded ${currentUserData.length} leads.`, 'success');
+  window.showToast("Loading lead data...", 'info');
+  currentUserData = await fetchSheetDBData();
+  renderLeadsTable();
+  window.showToast(`✅ Loaded ${currentUserData.length} leads.`, 'success');
 }
 
+// ==========================
+// 🔹 DOCUMENT READY EVENTS
+// ==========================
 
-// --- DOCUMENT READY AND EVENT HANDLERS ---
+$(document).ready(function () {
+  // Disable tools if not authenticated
+  if (!window.isFirebaseAuthComplete && !firebase.auth.currentUser) {
+    if (typeof disableTools === 'function') disableTools();
+  }
 
-$(document).ready(function() {
-    
-    // Check auth status on load (This will trigger the onAuthStateChanged in the module script)
-    if (!window.isFirebaseAuthComplete && !firebase.auth.currentUser) {
-        disableTools();
+  // 🔸 Lead Entry Form Submit
+  $('#noteEntryForm').on('submit', async function (e) {
+    e.preventDefault();
+    if (!isAuthReady) return window.showToast("Please log in to submit data.", 'danger');
+
+    const leadData = {
+      CustomerName: $('#customerName').val().trim(),
+      MobileNumber: $('#mobileNumber').val().trim(),
+      LeadFor: $('#leadFor').val(),
+      LeadBy: $('#leadBy').val().trim() || 'N/A',
+      LastContact: $('#lastContact').val(),
+      Remark: $('#remark').val().trim() || 'N/A',
+    };
+
+    const success = await saveLeadEntry(leadData);
+    if (success) {
+      $('#noteEntryForm')[0].reset();
+      bootstrap.Modal.getInstance(document.getElementById('leadEntryModal')).hide();
+      await loadAndRenderData();
+    }
+  });
+  
+  // 🆕 🔸 QUICK NOTE FORM SUBMIT - Added to match new HTML
+  $('#quickNoteForm').on('submit', async function (e) {
+    e.preventDefault();
+    if (!isAuthReady) return window.showToast("Please log in to save a note.", 'danger');
+
+    const noteText = $('#noteTextarea').val().trim();
+
+    if (!noteText) {
+      window.showToast("Note cannot be empty.", 'warning');
+      return;
     }
 
-    $('#noteEntryForm').on('submit', async function(e) {
-        e.preventDefault();
-        
-        if (!isAuthReady) {
-            window.showToast("Please log in to submit data.", 'danger');
-            return;
-        }
+    const success = await saveQuickNote(noteText);
 
-        const leadData = {
-            CustomerName: $('#customerName').val(),
-            MobileNumber: $('#mobileNumber').val(),
-            LeadFor: $('#leadFor').val(),
-            LeadBy: $('#leadBy').val() || 'N/A',
-            LastContact: $('#lastContact').val(),
-            Remark: $('#remark').val() || 'N/A',
-        };
+    if (success) {
+      // Clear the textarea after saving
+      $('#noteTextarea').val('');
+      
+      // Reload and render the notes list inside the modal immediately
+      await loadAndRenderQuickNotes(); 
+      window.showToast("Note saved and updated.", 'success');
+    }
+  });
 
-        const success = await saveLeadEntry(leadData);
-        
-        if (success) {
-            $('#noteEntryForm')[0].reset();
-            bootstrap.Modal.getInstance(document.getElementById('leadEntryModal')).hide();
-        }
-    });
 
-    // Quick Note submission handler
-    $('#quickNoteForm').on('submit', async function(e) {
-        e.preventDefault();
-        if (!isAuthReady) {
-            window.showToast("Please log in to save notes.", 'danger');
-            return;
-        }
-        
-        const noteText = $('#noteTextarea').val().trim();
-        if (noteText.length === 0) {
-            window.showToast("Note cannot be empty.", 'warning');
-            return;
-        }
+  // 🔸 "Add Lead" from Manage Modal
+  $('#addLeadFromManageBtn').on('click', function () {
+    bootstrap.Modal.getInstance(document.getElementById('leadManageModal')).hide();
+    const leadEntryModal = new bootstrap.Modal(document.getElementById('leadEntryModal'));
+    leadEntryModal.show();
+  });
 
-        const success = await saveQuickNote(noteText);
-
-        if (success) {
-            $('#noteTextarea').val(''); // Clear only the new note area
-            await loadAndRenderQuickNotes(); // Refresh the saved notes list
-            // Do NOT hide the modal, so users can save multiple notes quickly
-        }
-    });
-
-    // Handler for the "Add Lead" button inside the Lead Management Modal
-    $('#addLeadFromManageBtn').on('click', function() {
-        // Hide the Lead Management Modal
-        bootstrap.Modal.getInstance(document.getElementById('leadManageModal')).hide();
-        // Show the Lead Entry Modal
-        const leadEntryModal = new bootstrap.Modal(document.getElementById('leadEntryModal'));
-        leadEntryModal.show();
-    });
-
-    $('#digitInput').on('input', function() {
-        const value = parseInt($(this).val());
-        const output = $('#spellingOutput');
-        
-        if (isNaN(value)) {
-            output.text('Enter a digit above.');
-        } else if (value < 0) {
-            output.text('Negative numbers are not supported.');
-        } else {
-            output.text(numberToIndianWords(value));
-        }
-    });
+  // 🔸 Number to Indian words converter (if applicable)
+  $('#digitInput').on('input', function () {
+    const value = parseInt($(this).val());
+    const output = $('#spellingOutput');
+    if (isNaN(value)) output.text('Enter a valid number.');
+    else if (value < 0) output.text('Negative numbers not supported.');
+    else output.text(numberToIndianWords(value));
+  });
 });
 
 
@@ -732,7 +732,7 @@ $(document).ready(function() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js');
+      const registration = await navigator.serviceWorker.register('./service-worker.js');
       console.log('✅ Service Worker registered with scope:', registration.scope);
     } catch (err) {
       console.error('❌ Service Worker registration failed:', err);
@@ -741,37 +741,54 @@ if ('serviceWorker' in navigator) {
 }
 
 let deferredPrompt = null;
+
+// Elements
 const installBanner = document.getElementById('installBanner');
 const installButton = document.getElementById('installButton');
 
+// Listen for beforeinstallprompt event
 window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
+  e.preventDefault(); // Stop automatic prompt
   deferredPrompt = e;
+
+  // Show custom install banner
   if (installBanner) {
     installBanner.classList.remove('d-none');
-    installBanner.classList.add('d-flex');
+    installBanner.classList.add('d-flex', 'align-items-center', 'justify-content-between');
   }
+
   console.log('📲 beforeinstallprompt event captured');
 });
 
+// Handle install button click
 if (installButton) {
   installButton.addEventListener('click', async () => {
     if (!deferredPrompt) {
-      console.warn('⚠️ No install prompt available yet.');
+      console.warn('⚠️ Install prompt not available yet.');
       return;
     }
+
+    // Hide banner before showing native prompt
     if (installBanner) installBanner.classList.add('d-none');
+
+    // Show native install prompt
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      console.log('✅ User accepted the PWA installation');
-    } else {
-      console.log('❌ User dismissed the PWA installation');
+
+    try {
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(outcome === 'accepted'
+        ? '✅ User accepted the PWA installation'
+        : '❌ User dismissed the PWA installation');
+    } catch (err) {
+      console.error('❌ Error during PWA installation:', err);
     }
+
+    // Reset prompt
     deferredPrompt = null;
   });
 }
 
+// Optional: Handle appinstalled event
 window.addEventListener('appinstalled', () => {
   console.log('📦 PWA installed successfully');
   if (installBanner) installBanner.classList.add('d-none');
