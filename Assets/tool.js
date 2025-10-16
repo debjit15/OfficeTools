@@ -582,16 +582,12 @@ $(document).ready(function () {
         if (success) {
             $('#noteEntryForm')[0].reset();
             bootstrap.Modal.getInstance(document.getElementById('leadEntryModal')).hide();
-            // Note: Use a more targeted refresh if possible, but loadAndRenderData works.
             await loadAndRenderData();
         }
     });
 
     // =================================================================
     // 🔸 Lead Edit Save Button Click (Update Existing)
-    // 💡 FIX: Removed the redundant '#leadEditForm' submit listener.
-    // The save logic is now attached to the modal's specific footer button.
-    // NOTE: This assumes 'handleSaveClick' (which calls saveEditedLead) is defined elsewhere.
     // =================================================================
     $('#saveLeadChanges').on('click', handleSaveClick);
 
@@ -613,10 +609,7 @@ $(document).ready(function () {
         const success = await saveQuickNote(noteText);
 
         if (success) {
-            // Clear the textarea after saving
             $('#noteTextarea').val('');
-            
-            // Reload and render the notes list inside the modal immediately
             await loadAndRenderQuickNotes(); 
             window.showToast("Note saved and updated.", 'success');
         }
@@ -625,12 +618,16 @@ $(document).ready(function () {
 
     // =================================================================
     // 🔸 UI/Modal Control Events
+    // 💡 FIX APPLIED HERE: Use jQuery to hide the modal, ensuring it works
+    // regardless of whether getInstance() returns an object.
     // =================================================================
     // 🔸 "Add Lead" from Manage Modal
     $('#addLeadFromManageBtn').on('click', function () {
-        // Hide the current modal instance
-        bootstrap.Modal.getInstance(document.getElementById('leadManageModal')).hide();
-        // Show the target modal
+        
+        // Hide the current modal (Manage Modal) using jQuery's hide utility for Bootstrap
+        $('#leadManageModal').modal('hide'); 
+
+        // Show the target modal (Entry Modal)
         const leadEntryModal = new bootstrap.Modal(document.getElementById('leadEntryModal'));
         leadEntryModal.show();
     });
@@ -640,7 +637,6 @@ $(document).ready(function () {
     // =================================================================
     $('#leadSearchInput').on('input', function() {
         const searchTerm = $(this).val();
-        // Assuming 'currentUserData' holds the full unfiltered data
         const filteredData = filterLeads(searchTerm, currentUserData); 
         renderLeadsTable(filteredData);
     });
@@ -657,6 +653,7 @@ $(document).ready(function () {
         else output.text(numberToIndianWords(value));
     });
 });
+
 
 
 
