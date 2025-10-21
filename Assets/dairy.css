@@ -1,0 +1,317 @@
+:root {
+    --primary-bg: #fdf8f0;
+    --card-bg: #fff8f0;
+    --accent-color: #d2691e;
+    --accent-hover: #b5561b;
+    --border-color: #deb887;
+    --text-color: #333333;
+    --content-font: 'Homemade Apple', cursive;
+}
+
+/* --- Theme Settings --- */
+body.theme-dark {
+    --primary-bg: #1c1c1c;
+    --card-bg: #2a2a2a;
+    --accent-color: #90caf9;
+    --accent-hover: #64b5f6;
+    --border-color: #444;
+    --text-color: #e0e0e0;
+}
+body.theme-blue {
+    --primary-bg: #e3f2fd;
+    --card-bg: #f5f8ff;
+    --accent-color: #1565c0;
+    --accent-hover: #1976d2;
+    --border-color: #64b5f6;
+    --text-color: #1a237e;
+}
+body.theme-green {
+    --primary-bg: #e8f5e9;
+    --card-bg: #f1f8e9;
+    --accent-color: #388e3c;
+    --accent-hover: #4caf50;
+    --border-color: #81c784;
+    --text-color: #1b5e20;
+}
+
+/* --- Base Styles --- */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: var(--primary-bg);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#content {
+    padding: 20px 0 80px 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- Diary Card & Modal --- */
+.diary-card, .diary-card-modal .modal-content {
+    background: var(--card-bg);
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    padding: 20px;
+    width: 90%;
+    max-width: 800px;
+    min-height: 90%;
+    position: relative;
+    overflow-y: auto;
+    transition: background-color 0.3s, color 0.3s;
+    color: var(--text-color);
+}
+.diary-card-modal .modal-content {
+    color: var(--text-color);
+}
+
+/* --- Paged Header --- */
+.paged-header-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+    background: transparent;
+}
+.paged-header-area h4 {
+    margin: 0 10px;
+    flex-grow: 1;
+    text-align: center;
+    font-weight: 600;
+}
+.header-group {
+    display: flex;
+    gap: 8px;
+}
+
+/* --- Icon Buttons --- */
+.btn-diary-icon {
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+.btn-diary-icon:hover {
+    background: var(--accent-color);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* --- Paged Content & Controls --- */
+#pagedView {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding-bottom: 50px;
+}
+
+.paged-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+    font-family: var(--content-font);
+    line-height: 1.6;
+    padding-bottom: 20px;
+    transition: color 0.3s, font-family 0.3s;
+}
+
+.paged-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+}
+
+/* --- General Buttons --- */
+.btn-diary {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.btn-diary:hover {
+    background: var(--accent-hover);
+    color: white;
+}
+
+/* --- Page Flip Animations --- */
+.paged-content {
+    perspective: 1200px;
+    position: relative;
+}
+.page-flip {
+    transform-origin: left center;
+    transition: transform 0.6s ease, opacity 0.6s ease;
+}
+.page-flip.next {
+    transform: rotateY(-180deg);
+    opacity: 0;
+}
+.page-flip.prev {
+    transform: rotateY(180deg);
+    opacity: 0;
+}
+
+/* --- Today's Entry --- */
+.today-entry {
+    border-left: 4px solid var(--accent-color);
+    padding-left: 16px;
+    background-color: rgba(210,105,30,0.05);
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+/* --- Calendar --- */
+.calendar-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+#currentMonthYear {
+    font-weight: 600;
+    color: var(--accent-color);
+    margin: 0;
+}
+.calendar-grid, .calendar-grid-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+}
+.calendar-grid-header {
+    font-weight: 500;
+    color: #777;
+    margin-bottom: 5px;
+}
+.calendar-day {
+    padding: 8px 0;
+    margin: 1px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+.calendar-day:hover {
+    background: var(--accent-hover);
+    color: #fff;
+}
+.calendar-day.empty {
+    visibility: hidden;
+    pointer-events: none;
+}
+.calendar-day.today {
+    background: var(--accent-color);
+    color: #fff;
+    font-weight: 600;
+}
+.calendar-day.has-entry {
+    background: #ffcc99;
+    color: var(--accent-color);
+    font-weight: 600;
+}
+.calendar-day.has-entry:hover {
+    background: var(--accent-hover);
+    color: #fff;
+}
+
+/* --- Settings Modal --- */
+.color-option {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+}
+.color-option.active {
+    border-color: #000 !important;
+    box-shadow: 0 0 0 2px #fff;
+}
+.form-control-color {
+    width: 60px;
+    height: 35px;
+}
+
+/* --- Editor --- */
+#editor-container {
+    height: 100%;
+    border-radius: 8px;
+    background: #fffef9;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    overflow-y: auto;
+    padding: 12px;
+    font-family: var(--content-font);
+    font-size: 1.05rem;
+}
+
+/* --- Footer --- */
+#appFooter {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px 20px;
+    background-color: var(--primary-bg);
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-color);
+    z-index: 100;
+    transition: background-color 0.3s, color 0.3s;
+}
+#appFooter p {
+    margin: 0;
+    opacity: 0.7;
+}
+
+/* --- Responsive --- */
+@media(max-width:768px) {
+    .paged-header-area {
+        padding: 10px 0;
+    }
+    .header-group {
+        gap: 4px;
+    }
+    #editor-container {
+        min-height: 80vh;
+    }
+    .paged-controls {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+    }
+}
