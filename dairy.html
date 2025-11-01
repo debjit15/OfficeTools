@@ -1,1101 +1,506 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Diary - Professional Edition</title>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Digital Diary - Professional Edition</title>
 
-    <style>
-        /*
-        --------------------------------------------------
-        1. BASE STYLES & THEME VARIABLES
-        --------------------------------------------------
-        */
-:root {
-            --color-primary: #8B4513;
-            /* Saddle Brown - Elegant Primary */
-            --color-secondary: #D2B48C;
-            /* Tan - Paper Accent */
-            --color-text: #333333;
-            --color-bg: #F5F5DC;
-            /* Beige - Soft overall background */
-            --color-paper: #FFF8F0;
-            /* Off-White/Creamy Paper */
-            --shadow-elevation: 0 10px 30px rgba(0, 0, 0, 0.15);
-            --font-ui: 'Poppins', sans-serif;
-            --font-content: 'Homemade Apple', cursive;
-        }
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        /* Default Theme Settings (Light/Paper) */
-        .theme-default {
-            --color-paper: #FFF8F0;
-            --color-text: #333333;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-        }
+  <!-- Quill -->
+  <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
-        /* Dark Theme Settings */
-        .theme-dark {
-            --color-paper: #2c2c2c;
-            --color-text: #E0E0E0;
-            --color-bg: #1c1c1c;
-            --shadow-elevation: 0 10px 30px rgba(0, 0, 0, 0.5);
-            background-color: var(--color-bg);
-            color: var(--color-text);
-        }
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
 
-        /* Blue Theme Settings */
-        .theme-blue {
-            --color-paper: #e0f7fa;
-            --color-text: #006064;
-            --color-primary: #00BCD4;
-            --color-bg: #c1e7ea;
-        }
-
-        /* Green Theme Settings */
-        .theme-green {
-            --color-paper: #e8f5e9;
-            --color-text: #1b5e20;
-            --color-primary: #4CAF50;
-            --color-bg: #dcedc8;
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-ui);
-            transition: background-color 0.3s;
-        }
-
-        #content {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 80px);
-            /* Account for footer */
-            padding: 20px 10px;
-        }
-
-        /*
-        --------------------------------------------------
-        2. DIARY CARD & LAYOUT
-        --------------------------------------------------
-        */
-        .diary-card {
-            background-color: var(--color-paper);
-            border-radius: 12px;
-            box-shadow: var(--shadow-elevation);
-            width: 100%;
-            max-width: 800px;
-            min-height: 550px;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            border: 2px solid var(--color-secondary);
-            /* Subtle border for premium feel */
-            transition: all 0.3s;
-        }
-
-        /* Mobile adjustments */
-        @media (max-width: 768px) {
-            .diary-card {
-                margin: 0;
-                padding: 15px;
-                min-height: 85vh;
-                border-radius: 0;
-            }
-            #content {
-                padding: 0;
-                align-items: flex-start;
-            }
-        }
-
-        .paged-header-area h4 {
-            color: var(--color-primary) !important;
-            font-family: var(--font-ui);
-            font-weight: 600;
-        }
-
-        /*
-        --------------------------------------------------
-        3. BUTTONS & INTERACTIVE ELEMENTS
-        --------------------------------------------------
-        */
-        .btn-diary {
-            background-color: var(--color-primary);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 15px;
-            font-weight: 500;
-            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-        }
-
-        .btn-diary:hover {
-            background-color: color-mix(in srgb, var(--color-primary) 80%, black);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            color: #fff;
-        }
-
-        .btn-diary-icon {
-            background-color: var(--color-secondary);
-            color: var(--color-primary);
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: 1px solid var(--color-primary);
-            transition: background-color 0.2s, color 0.2s, transform 0.1s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-diary-icon:hover {
-            background-color: var(--color-primary);
-            color: var(--color-paper);
-            transform: scale(1.05);
-        }
-
-        /*
-        --------------------------------------------------
-        4. DIARY CONTENT VIEW & ANIMATION
-        --------------------------------------------------
-        */
-        #pagedView {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .paged-content {
-            flex-grow: 1;
-            padding: 15px 10px;
-            overflow-y: auto;
-            line-height: 1.8;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            color: var(--color-text);
-            /* Use dynamic text color */
-            font-family: var(--font-content);
-            font-size: 1.1rem;
-        }
-
-        /* Loading/Slide transition classes */
-        .content-transition-in {
-            opacity: 0;
-            transform: translateX(20px);
-        }
-
-        .content-transition-out {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .today-entry {
-            margin-top: 50px;
-            font-family: var(--font-ui);
-            font-style: italic;
-            color: #aaa !important;
-        }
-
-        /*
-        --------------------------------------------------
-        5. MODAL STYLES (CALENDAR, EDITOR, SETTINGS)
-        --------------------------------------------------
-        */
-        .modal-content.diary-card-modal {
-            background-color: var(--color-paper);
-            color: var(--color-text);
-            border-radius: 12px;
-            box-shadow: var(--shadow-elevation);
-            border: none;
-        }
-
-        .modal-header {
-            border-bottom: 1px solid var(--color-secondary);
-        }
-
-        .modal-title {
-            color: var(--color-primary);
-            font-weight: 600;
-        }
-
-        /* Quill Editor */
-        #editor-container {
-            height: 100%;
-            min-height: 300px;
-            border-radius: 8px;
-            border: 1px solid var(--color-secondary);
-            overflow: hidden;
-            background-color: #fff;
-            /* Always white inside the editor for better visibility */
-            color: #333;
-        }
-
-        .ql-container {
-            font-family: var(--font-content);
-            /* Editor content uses the handwriting font */
-            font-size: 1.1rem;
-            height: calc(100% - 42px);
-        }
-
-        .ql-toolbar.ql-snow {
-            background-color: #f7f7f7;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            border: none;
-            border-bottom: 1px solid #ddd;
-        }
-
-        /* Calendar */
-        .calendar-container {
-            width: 100%;
-            max-width: 450px;
-            padding: 15px;
-            background-color: var(--color-secondary);
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .calendar-grid-header, .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center;
-        }
-
-        .calendar-grid-header span {
-            font-weight: 600;
-            color: var(--color-primary);
-            padding: 5px 0;
-        }
-
-        .calendar-day {
-            padding: 10px 5px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.15s, transform 0.1s;
-            font-weight: 500;
-            color: var(--color-text);
-        }
-
-        .calendar-day:hover:not(.empty-day) {
-            background-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
-            transform: translateY(-2px);
-        }
-
-        .calendar-day.has-entry {
-            position: relative;
-            background-color: var(--color-paper);
-            border: 1px solid var(--color-primary);
-        }
-
-        .calendar-day.current-date {
-            background-color: var(--color-primary);
-            color: #fff;
-            font-weight: 700;
-        }
-
-        .calendar-day.empty-day {
-            visibility: hidden;
-            cursor: default;
-        }
-
-        /* Settings */
-        .color-option {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 3px solid transparent;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: transform 0.1s, border-color 0.2s;
-        }
-
-        .color-option.active {
-            border-color: var(--color-primary);
-            transform: scale(1.1);
-        }
-
-        /*
-        --------------------------------------------------
-        6. FOOTER
-        --------------------------------------------------
-        */
-        #appFooter {
-            text-align: center;
-            padding: 15px 0;
-            background-color: var(--color-bg);
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            transition: background-color 0.3s;
-            height: 80px;
-        }
-
-        #pageInfo {
-            color: var(--color-primary) !important;
-            font-weight: 700 !important;
-            font-family: var(--font-ui);
-        }
-    </style>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background: #f6f7fb; margin:0; padding:0; }
+    .container-main { max-width:1100px; margin:24px auto; }
+    .diary-header { display:flex; align-items:center; gap:12px; justify-content:space-between; margin-bottom:12px; }
+    #pagedEntryContent { min-height:360px; border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 6px 18px rgba(15,23,42,0.06); }
+    .canvas-wrap { background:#fff; border-top:1px solid #eee; padding:12px; display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; }
+    #drawCanvas { border:1px solid #e6e9ef; border-radius:6px; touch-action: none; background:#fff; }
+    .small-muted { color:#6c757d; font-size:0.9rem; }
+    .btn-ghost { background:transparent; border:1px solid rgba(0,0,0,0.06); }
+    .diary-actions { display:flex; gap:8px; align-items:center; }
+    .date-display { font-weight:600; font-size:1.05rem; }
+    @media (max-width:800px){ .diary-header { flex-direction:column; align-items:flex-start; gap:8px; } .canvas-wrap{flex-direction:column;} }
+  </style>
 </head>
-<body class="theme-default">
+<body>
+  <div class="container-main">
+    <div class="diary-header">
+      <div>
+        <div class="small-muted">User:</div>
+        <div id="userIdDisplay" class="date-display">Not signed in</div>
+      </div>
 
-    <div id="content">
-        <div id="pagedViewPage" class="page active diary-card">
-            <div id="pagedView">
-                <div class="paged-header-area d-flex justify-content-between align-items-center mb-3">
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-diary-icon" id="goToWriteBtn" title="Write Today's Entry" data-bs-toggle="modal" data-bs-target="#editorModal">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="btn btn-sm btn-diary-icon" id="goToSummaryBtn" title="View Summary" data-bs-toggle="modal" data-bs-target="#summaryModal">
-                            <i class="fas fa-list"></i>
-                        </button>
-                    </div>
-
-                    <h4 id="pagedEntryDate" class="text-center flex-grow-1">Loading...</h4>
-
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-diary-icon" id="goToCalendarBtn" title="Jump to Date" data-bs-toggle="modal" data-bs-target="#calendarModal">
-                            <i class="fas fa-calendar-alt"></i>
-                        </button>
-                        <button class="btn btn-sm btn-diary-icon" id="goToSettingsBtn" title="Settings" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        <button class="btn btn-sm btn-diary-icon" id="goToEditBtn" title="Edit this entry">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="pagedEntryContent" class="paged-content">
-                    <p class="text-center text-muted today-entry">
-                        Initializing app and loading data...
-                    </p>
-                </div>
-            </div>
+      <div class="diary-actions">
+        <div class="btn-group" role="group" aria-label="date nav">
+          <button id="prevPageBtn" class="btn btn-outline-primary btn-sm"><i class="fas fa-arrow-left"></i></button>
+          <button id="todayBtn" class="btn btn-outline-secondary btn-sm">Today</button>
+          <button id="nextPageBtn" class="btn btn-outline-primary btn-sm"><i class="fas fa-arrow-right"></i></button>
         </div>
+
+        <div class="ms-2">
+          <input id="datePicker" type="date" class="form-control form-control-sm" />
+        </div>
+
+        <div class="ms-2">
+          <button id="saveBtn" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i> Save</button>
+          <button id="deleteBtn" class="btn btn-danger btn-sm"><i class="fas fa-trash me-1"></i> Delete</button>
+        </div>
+      </div>
     </div>
 
-    <div class="modal fade" id="calendarModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content diary-card-modal">
-                <div class="modal-header">
-                    <h4 class="modal-title">Jump to Entry Date</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body d-flex flex-column align-items-center">
-                    <div class="calendar-container">
-                        <div class="calendar-nav d-flex justify-content-between align-items-center mb-2">
-                            <button class="btn btn-diary btn-sm" id="prevMonthBtn"><i class="fas fa-chevron-left"></i></button>
-                            <h5 id="currentMonthYear"></h5>
-                            <button class="btn btn-diary btn-sm" id="nextMonthBtn"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="calendar-grid-header d-flex justify-content-between">
-                            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-                        </div>
-                        <div class="calendar-grid d-grid" id="calendarGrid">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+    <div id="pagedEntryContent" class="mb-3">
+      <!-- Quill Editor -->
+      <div id="editorToolbar" style="background:#fafafa; border-bottom:1px solid #eee; padding:.5rem;">
+        <span class="ql-formats">
+          <button class="ql-bold"></button>
+          <button class="ql-italic"></button>
+          <button class="ql-underline"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-list" value="bullet"></button>
+          <button class="ql-list" value="ordered"></button>
+        </span>
+        <span class="ql-formats">
+          <button class="ql-clean"></button>
+        </span>
+      </div>
+      <div id="editor" style="height:300px;"></div>
+
+      <!-- Canvas area for sketches / codes -->
+      <div class="canvas-wrap">
+        <div style="flex:1 1 520px; min-width:260px;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="small-muted">Sketch / Handwritten notes</div>
+            <div>
+              <button id="drawToggleBtn" class="btn btn-sm btn-ghost"><i class="fas fa-pen"></i> Draw</button>
+              <button id="clearCanvasBtn" class="btn btn-sm btn-ghost"><i class="fas fa-eraser"></i> Clear</button>
+              <button id="saveImageBtn" class="btn btn-sm btn-ghost"><i class="fas fa-download"></i> Export</button>
             </div>
+          </div>
+          <canvas id="drawCanvas" width="760" height="240"></canvas>
         </div>
+
+        <div style="width:240px; min-width:200px;">
+          <div class="small-muted mb-2">Quick code snippet (plain text)</div>
+          <textarea id="codeBox" class="form-control" style="height:200px; font-family:monospace; font-size:0.9rem;" placeholder="// Paste code or notes here"></textarea>
+          <div class="small-muted mt-2">Saved sketch and editor content are stored per date.</div>
+        </div>
+      </div>
     </div>
 
-    <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content diary-card-modal">
-                <div class="modal-header">
-                    <h4 class="modal-title">App Settings</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <h5 class="mb-3" style="color:var(--color-primary);">Theme & Colors</h5>
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Theme Style</label>
-                        <div class="d-flex flex-wrap gap-3">
-                            <div class="color-option active" data-theme="default" style="background:#FFF8F0; border-color:#8B4513;"></div>
-                            <div class="color-option" data-theme="dark" style="background:#2c2c2c; border-color:#888;"></div>
-                            <div class="color-option" data-theme="blue" style="background:#e0f7fa; border-color:#00BCD4;"></div>
-                            <div class="color-option" data-theme="green" style="background:#e8f5e9; border-color:#4CAF50;"></div>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="textColorPicker" class="form-label fw-bold">Reading Text Color</label>
-                        <input type="color" class="form-control form-control-color" id="textColorPicker" value="#333333">
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="textFontSelect" class="form-label fw-bold">Reading Font Style</label>
-                        <select class="form-select" id="textFontSelect">
-                            <option value="Homemade Apple" selected>Handwritten (Homemade Apple)</option>
-                            <option value="Poppins">Modern (Poppins)</option>
-                            <option value="serif">Classic (Serif)</option>
-                            <option value="monospace">Typewriter (Monospace)</option>
-                        </select>
-                    </div>
-                    <hr>
-                    <p class="text-muted">
-                        User ID: <span id="currentUserId">Loading...</span>
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="small-muted">Entries are saved to your Firebase Realtime Database under /diary/{uid}/{YYYY-MM-DD}</div>
+      <div>
+        <button id="signAnonBtn" class="btn btn-outline-secondary btn-sm">Sign in anonymously</button>
+      </div>
     </div>
+  </div>
 
-    <div class="modal fade" id="editorModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content diary-card-modal">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="entryTitleHeader">Write Diary Entry (Today)</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body d-flex flex-column">
-                    <div id="editor-container" class="mt-0 flex-grow-1"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="saveEntryBtn" class="btn btn-diary">Save Entry</button>
-                </div>
-            </div>
+  <!-- Modals (Summary & Confirm) -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <p id="confirmText" class="mb-3">Confirm?</p>
+          <div class="d-flex justify-content-center gap-2">
+            <button id="confirmYes" class="btn btn-danger btn-sm">Yes</button>
+            <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">No</button>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <div class="modal fade" id="summaryModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content diary-card-modal">
-                <div class="modal-header">
-                    <h4 class="modal-title" id="summaryModalLabel">Diary Summary</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="list-group mt-3" id="diarySummaryList">
-                        <li class="list-group-item text-center text-muted" id="summaryPlaceholder">Loading entries...</li>
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    <footer id="appFooter">
-        <div class="footer-content">
-            <div class="paged-controls d-flex justify-content-between mt-3">
-                <button class="btn btn-diary btn-sm" id="prevPageBtn">← Previous</button>
-                <span id="pageInfo">Loading...</span>
-                <button class="btn btn-diary btn-sm" id="nextPageBtn">Next →</button>
-            </div>
-        </div>
-    </footer>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLb8Fcl_Yqqd0EYXciu5wbrAj7-mz1o9M",
+      authDomain: "officetools-629fc.firebaseapp.com",
+      databaseURL: "https://officetools-629fc-default-rtdb.firebaseio.com",
+      projectId: "officetools-629fc",
+      storageBucket: "officetools-629fc.firebasestorage.app",
+      messagingSenderId: "888485297465",
+      appId: "1:888485297465:web:f832733b7b78d361067ce8",
+      measurementId: "G-8QE15667LC"
+    };
 
-    <script type="module">
-        // Firebase Imports - *** UPDATED FOR REALTIME DATABASE ***
-        import {
-            initializeApp
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import {
-            getAuth,
-            onAuthStateChanged,
-            setPersistence,
-            browserLocalPersistence
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getDatabase,
-            ref,
-            set,
-            onValue
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+    // Initialize Firebase & expose short handles
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-        // Global Firebase/App Variables
-        let app, db, auth, userId;
-        let quillEditor;
-        let entries = {};
-        let sortedDates = [];
-        let currentDate = new Date(); // Tracks the currently displayed date
-        const today = new Date();
+    window.FB = { db, auth, signInAnonymously, onAuthStateChanged, ref, set, get, remove, onValue };
 
-        // UI Elements
-        const elements = {
-            pagedEntryDate: document.getElementById('pagedEntryDate'),
-            pagedEntryContent: document.getElementById('pagedEntryContent'),
-            prevPageBtn: document.getElementById('prevPageBtn'),
-            nextPageBtn: document.getElementById('nextPageBtn'),
-            pageInfo: document.getElementById('pageInfo'),
-            goToEditBtn: document.getElementById('goToEditBtn'),
-            goToWriteBtn: document.getElementById('goToWriteBtn'),
-            saveEntryBtn: document.getElementById('saveEntryBtn'),
-            editorModal: new bootstrap.Modal(document.getElementById('editorModal')),
-            calendarModalElement: document.getElementById('calendarModal'),
-            calendarModal: new bootstrap.Modal(document.getElementById('calendarModal')),
-            summaryModal: new bootstrap.Modal(document.getElementById('summaryModal')),
-            entryTitleHeader: document.getElementById('entryTitleHeader'),
-            calendarGrid: document.getElementById('calendarGrid'),
-            currentMonthYear: document.getElementById('currentMonthYear'),
-            prevMonthBtn: document.getElementById('prevMonthBtn'),
-            nextMonthBtn: document.getElementById('nextMonthBtn'),
-            diarySummaryList: document.getElementById('diarySummaryList'),
-            summaryPlaceholder: document.getElementById('summaryPlaceholder'),
-            settingsModalElement: document.getElementById('settingsModal'),
-            textColorPicker: document.getElementById('textColorPicker'),
-            textFontSelect: document.getElementById('textFontSelect'),
-            currentUserId: document.getElementById('currentUserId'),
+    // UI refs
+    const userIdDisplay = document.getElementById('userIdDisplay');
+    const datePicker = document.getElementById('datePicker');
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const todayBtn = document.getElementById('todayBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const signAnonBtn = document.getElementById('signAnonBtn');
+
+    const editorContainer = document.getElementById('editor');
+    const codeBox = document.getElementById('codeBox');
+    const drawCanvas = document.getElementById('drawCanvas');
+    const drawToggleBtn = document.getElementById('drawToggleBtn');
+    const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+    const saveImageBtn = document.getElementById('saveImageBtn');
+
+    // Quill editor
+    let Quill;
+    async function loadQuill() {
+      if (!window.Quill) {
+        await import('https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js');
+      }
+      Quill = window.Quill;
+      window.quill = new Quill('#editor', {
+        modules: { toolbar: '#editorToolbar' },
+        theme: 'snow'
+      });
+    }
+
+    // Canvas drawing basic implementation
+    const ctx = drawCanvas.getContext('2d');
+    let drawing = false;
+    let drawEnabled = true;
+    let last = { x: 0, y: 0 };
+    let strokes = [];
+
+    function resizeCanvasForDevice() {
+      // keep logical size but scale for devicePixelRatio for sharpness
+      const ratio = window.devicePixelRatio || 1;
+      const w = 760;
+      const h = 240;
+      drawCanvas.style.width = w + 'px';
+      drawCanvas.style.height = h + 'px';
+      drawCanvas.width = Math.round(w * ratio);
+      drawCanvas.height = Math.round(h * ratio);
+      ctx.scale(ratio, ratio);
+      redrawAll();
+    }
+
+    function startStroke(x,y) {
+      drawing = true;
+      last = { x, y };
+      strokes.push([{ x, y }]);
+    }
+    function moveStroke(x,y) {
+      if (!drawing) return;
+      const s = strokes[strokes.length - 1];
+      s.push({ x, y });
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 2.6;
+      ctx.strokeStyle = '#0d6efd';
+      ctx.beginPath();
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(x,y);
+      ctx.stroke();
+      last = { x, y };
+    }
+    function endStroke() { drawing = false; }
+
+    function redrawAll() {
+      // clear visible canvas
+      ctx.clearRect(0,0,drawCanvas.width, drawCanvas.height);
+      // scale already applied; draw using logical coordinates
+      for (const s of strokes) {
+        if (s.length < 2) continue;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 2.6;
+        ctx.strokeStyle = '#0d6efd';
+        ctx.beginPath();
+        ctx.moveTo(s[0].x, s[0].y);
+        for (let i=1;i<s.length;i++) ctx.lineTo(s[i].x,s[i].y);
+        ctx.stroke();
+      }
+    }
+
+    function clientToCanvas(ev) {
+      const rect = drawCanvas.getBoundingClientRect();
+      const x = (ev.clientX ?? ev.touches?.[0]?.clientX) - rect.left;
+      const y = (ev.clientY ?? ev.touches?.[0]?.clientY) - rect.top;
+      return { x, y };
+    }
+
+    function wireCanvasEvents() {
+      // Pointer events for mouse+touch
+      drawCanvas.addEventListener('pointerdown', (e) => {
+        if (!drawEnabled) return;
+        drawCanvas.setPointerCapture(e.pointerId);
+        const p = clientToCanvas(e);
+        startStroke(p.x, p.y);
+      });
+      drawCanvas.addEventListener('pointermove', (e) => {
+        if (!drawEnabled) return;
+        const p = clientToCanvas(e);
+        moveStroke(p.x, p.y);
+      });
+      drawCanvas.addEventListener('pointerup', (e) => {
+        endStroke();
+      });
+      drawCanvas.addEventListener('pointercancel', () => endStroke());
+    }
+
+    // Date utilities
+    function formatDate(dt) {
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth()+1).padStart(2,'0');
+      const d = String(dt.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+    function parseDateInput(v) {
+      return v ? new Date(v + 'T00:00:00') : new Date();
+    }
+
+    // App state
+    let currentDate = new Date();
+    let currentUID = null;
+
+    function setDate(date) {
+      currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      datePicker.value = formatDate(currentDate);
+      document.getElementById('pagedEntryDate')?.remove?.(); // ignore if not present
+      // update header date display
+      // (we show date next to userIdDisplay)
+      // load entry for date
+      loadEntryForDate(formatDate(currentDate));
+    }
+
+    // Firebase helpers
+    function diaryRef(uid, dateStr) {
+      return ref(db, `diary/${uid}/${dateStr}`);
+    }
+
+    async function loadEntryForDate(dateStr) {
+      if (!currentUID) {
+        showStatus('Please sign in to load diary.');
+        clearEditorAndCanvas();
+        return;
+      }
+      showStatus('Loading...');
+      try {
+        const snap = await get(diaryRef(currentUID, dateStr));
+        if (!snap.exists()) {
+          showStatus('No entry for ' + dateStr);
+          clearEditorAndCanvas();
+          return;
+        }
+        const data = snap.val();
+        // load editor (we store both delta and html; prefer delta)
+        if (data.quillDelta) {
+          try { window.quill.setContents(data.quillDelta); } catch (e) { window.quill.root.innerHTML = data.html || ''; }
+        } else {
+          window.quill.root.innerHTML = data.html || '';
+        }
+        codeBox.value = data.code || '';
+        // load canvas image if present
+        if (data.canvasImage) {
+          loadCanvasFromDataURL(data.canvasImage);
+        } else {
+          strokes = [];
+          redrawAll();
+        }
+        showStatus('Loaded entry for ' + dateStr);
+      } catch (err) {
+        console.error(err);
+        showStatus('Failed to load entry.');
+      }
+    }
+
+    async function saveEntryForDate(dateStr) {
+      if (!currentUID) {
+        showStatus('Sign in first to save.');
+        return;
+      }
+      try {
+        const delta = window.quill.getContents();
+        const html = window.quill.root.innerHTML;
+        const codeText = codeBox.value || '';
+        const canvasImage = drawCanvas.toDataURL('image/png');
+        const payload = {
+          quillDelta: delta,
+          html,
+          code: codeText,
+          canvasImage,
+          updatedAt: Date.now()
         };
-
-        // Date formatting utilities
-        const formatDateKey = (date) => date.toISOString().split('T')[0]; // YYYY-MM-DD
-        const formatDisplayDate = (date) => date.toLocaleDateString('en-US', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-        const formatMonthYear = (date) => date.toLocaleDateString('en-US', {
-            year: 'numeric', month: 'long'
-        });
-
-        const initializeFirebase = async () => {
-            try {
-                const firebaseConfig = {
-                    apiKey: "AIzaSyCLb8Fcl_Yqqd0EYXciu5wbrAj7-mz1o9M",
-                    authDomain: "officetools-629fc.firebaseapp.com",
-                    projectId: "officetools-629fc",
-                    storageBucket: "officetools-629fc.firebasestorage.app",
-                    messagingSenderId: "888485297465",
-                    appId: "1:888485297465:web:f832733b7b78d361067ce8",
-                    databaseURL: "https://officetools-629fc-default-rtdb.firebaseio.com",
-                    measurementId: "G-8QE15667LC"
-                };
-
-                if (Object.keys(firebaseConfig).length === 0) {
-                    console.error("Firebase config is missing.");
-                    elements.pagedEntryContent.innerHTML = '<p class="text-center text-danger today-entry">Error: Firebase configuration is missing. Cannot save data.</p>';
-                    return;
-                }
-
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getDatabase(app);
-                await setPersistence(auth, browserLocalPersistence);
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        elements.currentUserId.textContent = userId;
-                        listenForDiaryEntries();
-                        initializeQuill();
-                        if (document.body.classList.contains('theme-default')) {
-                            loadSettings();
-                        }
-                        displayEntry(currentDate, 'initial');
-                    } else {
-                        console.log("No user is signed in. Redirecting to login page...");
-                        elements.pagedEntryContent.innerHTML = `
-                        <p class="text-center text-danger today-entry">
-                        You are not logged in. Redirecting to login page...
-                        </p>`;
-                        
-                            window.location.replace("index.html");
-                    }
-                });
-
-            } catch (error) {
-                console.error("Firebase initialization failed:",
-                    error);
-                elements.pagedEntryContent.innerHTML = '<p class="text-center text-danger today-entry">Error initializing application. Check console for details.</p>';
-            }
-        };
-
-        // Realtime Database Listener *** UPDATED ***
-        const listenForDiaryEntries = () => {
-            if (!db || !userId) return;
-
-            // Path for private data: /artifacts/{appId}/users/{userId}/diary_entries
-            const appId = typeof __app_id !== 'undefined' ? __app_id: 'default-app-id';
-            const basePath = `artifacts/${appId}/users/${userId}/diary_entries`;
-            const diaryRef = ref(db, basePath); // Create a reference to the data location
-
-            // Use onValue for real-time data synchronization
-            onValue(diaryRef, (snapshot) => {
-                // snapshot.val() returns the entire JSON object stored at the reference, keyed by dateKey
-                const newEntries = snapshot.val() || {};
-                entries = newEntries;
-
-                // Update state and UI
-                sortedDates = Object.keys(entries).sort().reverse();
-                updateAllUI();
-            }, (error) => {
-                console.error("Error listening to Realtime Database:", error);
-            });
-        };
-
-        // Data Operations (RTDB) *** UPDATED ***
-        const saveEntry = async () => {
-            if (!quillEditor || !userId) return;
-
-            const dateKey = formatDateKey(currentDate);
-            const content = quillEditor.root.innerHTML;
-
-            if (content.trim() === '<p><br></p>') {
-                console.warn("Attempted to save empty entry.");
-                return;
-            }
-
-            const entryData = {
-                date: dateKey,
-                content: content,
-                updatedAt: new Date().toISOString(),
-            };
-
-            try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id: 'default-app-id';
-                // Construct the full path reference for the specific date
-                const entryPath = `artifacts/${appId}/users/${userId}/diary_entries/${dateKey}`;
-                const entryRef = ref(db, entryPath);
-
-                // Use 'set' to write/overwrite the data at the specific path
-                await set(entryRef, entryData);
-
-                console.log("Entry saved successfully to RTDB for:", dateKey);
-                elements.editorModal.hide();
-            } catch (error) {
-                console.error("Error saving document to RTDB:", error);
-            }
-        };
-
-        // UI Update Functions
-        const displayEntry = (date, direction = 'initial') => {
-            const dateKey = formatDateKey(date);
-            const entry = entries[dateKey];
-            const isToday = dateKey === formatDateKey(today);
-
-            elements.pagedEntryDate.textContent = formatDisplayDate(date) + (isToday ? ' (Today)': '');
-            currentDate = date; // Update the app's current date state
-
-            // Apply slide animation classes
-            const contentEl = elements.pagedEntryContent;
-            contentEl.classList.add('content-transition-in');
-            contentEl.style.transform = direction === 'next' ? 'translateX(20px)': (direction === 'prev' ? 'translateX(-20px)': 'translateX(0)');
-
-            setTimeout(() => {
-                if (entry) {
-                    contentEl.innerHTML = entry.content;
-                    elements.goToEditBtn.disabled = false;
-                } else {
-                    contentEl.innerHTML = `<p class="text-center text-muted today-entry">No entry found for ${formatDisplayDate(date)}. Click '+' to write an entry.</p>`;
-                    elements.goToEditBtn.disabled = true;
-                }
-
-                // Slide content in
-                contentEl.style.transform = 'translateX(0)';
-                contentEl.classList.remove('content-transition-in');
-
-                updateNavigation();
-                updatePageInfo();
-            },
-                300); // Wait for the "slide out" transition to finish
-        };
-
-        const updateNavigation = () => {
-            const dateKey = formatDateKey(currentDate);
-            const currentIndex = sortedDates.indexOf(dateKey);
-
-            elements.prevPageBtn.disabled = currentIndex === sortedDates.length - 1;
-            elements.nextPageBtn.disabled = currentIndex === 0 || sortedDates.length === 0;
-
-            // If currently showing today, allow navigation to the previous entry, but not the next one unless it exists.
-            const dateDiff = (currentDate.getTime() - today.getTime());
-            const isFuture = dateDiff > (24 * 60 * 60 * 1000); // Check if date is tomorrow or later
-
-            if (isFuture) {
-                // Disable next button if we are looking at a date in the future
-                elements.nextPageBtn.disabled = true;
-            } else if (dateKey === formatDateKey(today)) {
-                // If we are looking at today, disable next button
-                elements.nextPageBtn.disabled = true;
-            }
-        };
-
-        const updatePageInfo = () => {
-            const dateKey = formatDateKey(currentDate);
-            const currentIndex = sortedDates.indexOf(dateKey);
-
-            let total = sortedDates.length;
-            let currentPage = total > 0 && currentIndex !== -1 ? total - currentIndex: 0;
-
-            if (entries[dateKey] && total === 0) {
-                // Case where only today's entry exists but not yet in sortedDates on first load
-                total = 1;
-                currentPage = 1;
-            } else if (!entries[dateKey] && !isDateInSortedDates(currentDate)) {
-                // If the current date is not an entry and not today, it's just a view.
-                currentPage = 0;
-            }
-
-
-            elements.pageInfo.textContent = `Entry ${currentPage} of ${total}`;
-        };
-
-        const isDateInSortedDates = (date) => sortedDates.includes(formatDateKey(date));
-
-        const updateAllUI = () => {
-            // Redraw current entry in case it was just added/updated
-            displayEntry(currentDate, 'initial');
-
-            // Re-generate calendar for current calendar month
-            const calendarMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-            renderCalendar(calendarMonth);
-
-            // Regenerate summary list
-            renderSummary();
-        };
-
-        // Navigation Logic
-        const navigate = (direction) => {
-            const dateKey = formatDateKey(currentDate);
-            const currentIndex = sortedDates.indexOf(dateKey);
-
-            let newDate;
-
-            if (currentIndex !== -1) {
-                // Case 1: Current date is a saved entry. Navigate to the next/prev saved entry.
-                const newIndex = currentIndex + (direction === 'prev' ? 1: -1);
-                if (newIndex >= 0 && newIndex < sortedDates.length) {
-                    newDate = new Date(sortedDates[newIndex]);
-                } else if (direction === 'next' && newIndex === -1 && sortedDates[0] < dateKey) {
-                    // Special case: if at the most recent entry, try to navigate to today if it's after
-                    newDate = today;
-                } else {
-                    return; // Prevent going out of bounds
-                }
-            } else {
-                // Case 2: Current date is not a saved entry (e.g., today or a manually jumped date).
-                // Navigate to the nearest saved entry or today.
-                const oneDay = 24 * 60 * 60 * 1000;
-                let targetDate = new Date(currentDate.getTime());
-
-                // Iterate day by day until a saved entry is found
-                for (let i = 0; i < 365; i++) {
-                    // Limit to a year just in case
-                    targetDate.setDate(targetDate.getDate() + (direction === 'prev' ? -1: 1));
-                    const targetKey = formatDateKey(targetDate);
-
-                    if (entries[targetKey]) {
-                        newDate = targetDate;
-                        break;
-                    }
-
-                    // If navigating next and we hit today, stop.
-                    if (direction === 'next' && formatDateKey(targetDate) === formatDateKey(today)) {
-                        newDate = today;
-                        break;
-                    }
-
-                    // Safety break for far past/future
-                    if (direction === 'prev' && i > 30) break;
-                }
-            }
-
-            if (newDate) {
-                displayEntry(newDate, direction);
-            }
-        };
-
-        // Quill Editor Setup
-        const initializeQuill = () => {
-            if (quillEditor) return;
-            const toolbarOptions = [
-                ['bold',
-                    'italic',
-                    'underline',
-                    'strike'],
-                ['blockquote',
-                    'code-block'],
-                [{
-                    'header': 1
-                },
-                    {
-                        'header': 2
-                    }],
-                [{
-                    'list': 'ordered'
-                },
-                    {
-                        'list': 'bullet'
-                    }],
-                [{
-                    'script': 'sub'
-                },
-                    {
-                        'script': 'super'
-                    }],
-                [{
-                    'indent': '-1'
-                },
-                    {
-                        'indent': '+1'
-                    }],
-                [{
-                    'color': []
-                },
-                    {
-                        'background': []
-                    }],
-                ['clean']
-            ];
-
-            quillEditor = new Quill('#editor-container', {
-                modules: {
-                    toolbar: toolbarOptions
-                },
-                theme: 'snow',
-                placeholder: 'Pour your heart out here...',
-            });
-        };
-
-        // Modal Events
-        elements.calendarModalElement.addEventListener('show.bs.modal', () => {
-            const calendarMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-            renderCalendar(calendarMonth);
-        });
-
-        elements.settingsModalElement.addEventListener('shown.bs.modal', () => {
-            // Ensure UI matches current settings on open
-            document.querySelectorAll('.color-option').forEach(el => {
-                el.classList.remove('active');
-                if (el.dataset.theme === document.body.className.replace('theme-', '')) {
-                    el.classList.add('active');
-                }
-            });
-
-            const rootStyles = getComputedStyle(document.documentElement);
-            elements.textColorPicker.value = rootStyles.getPropertyValue('--color-text').trim();
-            elements.textFontSelect.value = rootStyles.getPropertyValue('--font-content').replace(/['",]/g,
-                '').split(',')[0].trim();
-        });
-
-        // Calendar Rendering
-        let calendarViewDate = new Date();
-
-        const renderCalendar = (date) => {
-            calendarViewDate = date;
-            elements.currentMonthYear.textContent = formatMonthYear(date);
-            elements.calendarGrid.innerHTML = '';
-
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const firstDay = new Date(year, month, 1).getDay(); // 0 (Sun) - 6 (Sat)
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            // Fill in empty leading days
-            for (let i = 0; i < firstDay; i++) {
-                elements.calendarGrid.innerHTML += `<div class="calendar-day empty-day"></div>`;
-            }
-
-            // Fill in actual days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayDate = new Date(year, month, day);
-                const dateKey = formatDateKey(dayDate);
-
-                let classes = 'calendar-day';
-
-                if (entries[dateKey]) {
-                    classes += ' has-entry';
-                }
-                if (dateKey === formatDateKey(currentDate)) {
-                    classes += ' current-date';
-                }
-
-                const dayElement = document.createElement('div');
-                dayElement.className = classes;
-                dayElement.textContent = day;
-                dayElement.dataset.dateKey = dateKey;
-
-                dayElement.addEventListener('click', (e) => {
-                    const selectedKey = e.target.dataset.dateKey;
-                    if (selectedKey) {
-                        displayEntry(new Date(selectedKey));
-                        elements.calendarModal.hide();
-                    }
-                });
-
-                elements.calendarGrid.appendChild(dayElement);
-            }
-        };
-
-        // Summary Rendering
-        const renderSummary = () => {
-            elements.diarySummaryList.innerHTML = '';
-            if (sortedDates.length === 0) {
-                elements.diarySummaryList.innerHTML = `<li class="list-group-item text-center text-muted" id="summaryPlaceholder">No entries found yet.</li>`;
-                return;
-            }
-
-            sortedDates.forEach(dateKey => {
-                const entry = entries[dateKey];
-                if (entry) {
-                    const date = new Date(dateKey);
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center list-group-item-action';
-                    li.style.cursor = 'pointer';
-                    li.style.backgroundColor = 'var(--color-paper)';
-                    li.style.color = 'var(--color-text)';
-                    li.style.borderColor = 'var(--color-secondary)';
-
-                    const title = date.toLocaleDateString('en-US', {
-                        year: 'numeric', month: 'short', day: 'numeric'
-                    });
-
-                    // Get a short preview (plain text)
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = entry.content;
-                    const previewText = tempDiv.textContent.substring(0, 50) + (tempDiv.textContent.length > 50 ? '...': '');
-
-                    li.innerHTML = `
-                    <div class="fw-bold">${title}</div>
-                    <small class="text-muted">${previewText}</small>
-                    `;
-
-                    li.addEventListener('click', () => {
-                        displayEntry(date);
-                        elements.summaryModal.hide();
-                    });
-
-                    elements.diarySummaryList.appendChild(li);
-                }
-            });
-        };
-
-        // Settings Logic
-        const saveSettings = () => {
-            const theme = document.body.className.replace('theme-',
-                '');
-            const textColor = elements.textColorPicker.value;
-            const textFont = elements.textFontSelect.value;
-
-            localStorage.setItem('diaryTheme',
-                theme);
-            localStorage.setItem('diaryTextColor',
-                textColor);
-            localStorage.setItem('diaryTextFont',
-                textFont);
-
-            applySettings(theme,
-                textColor,
-                textFont);
-        };
-
-        const applySettings = (theme, textColor, textFont) => {
-            document.body.className = `theme-${theme}`;
-            document.documentElement.style.setProperty('--color-text',
-                textColor);
-
-            let fontName;
-            switch (textFont) {
-                case 'Homemade Apple':
-                    fontName = `'Homemade Apple', cursive`;
-                    break;
-                case 'Poppins':
-                    fontName = `'Poppins', sans-serif`;
-                    break;
-                case 'serif':
-                    fontName = `serif`;
-                    break;
-                case 'monospace':
-                    fontName = `monospace`;
-                    break;
-                default:
-                    fontName = `'Homemade Apple', cursive`;
-                }
-                document.documentElement.style.setProperty('--font-content',
-                    fontName);
-
-                // Update Quill editor font to match content font
-                if (quillEditor) {
-                    document.querySelector('.ql-container').style.fontFamily = fontName;
-                }
-            };
-
-            const loadSettings = () => {
-                const storedTheme = localStorage.getItem('diaryTheme') || 'default';
-                const storedColor = localStorage.getItem('diaryTextColor') || '#333333';
-                const storedFont = localStorage.getItem('diaryTextFont') || 'Homemade Apple';
-
-                elements.textColorPicker.value = storedColor;
-                elements.textFontSelect.value = storedFont;
-                applySettings(storedTheme, storedColor, storedFont);
-            };
-
-            // Event Listeners Setup
-            window.onload = initializeFirebase;
-
-            // Main Content Navigation
-            elements.prevPageBtn.addEventListener('click', () => navigate('prev'));
-            elements.nextPageBtn.addEventListener('click', () => navigate('next'));
-
-            // Edit/Write Button Logic
-            elements.goToWriteBtn.addEventListener('click', () => {
-                const dateKey = formatDateKey(currentDate);
-                elements.entryTitleHeader.textContent = `Write Diary Entry (${formatDisplayDate(currentDate)})`;
-                const entry = entries[dateKey];
-                if (entry) {
-                    quillEditor.setContents(quillEditor.clipboard.convert(entry.content));
-                } else {
-                    quillEditor.setText(''); // Clear editor for new entry
-                }
-            });
-
-            elements.goToEditBtn.addEventListener('click', () => {
-                const dateKey = formatDateKey(currentDate);
-                const entry = entries[dateKey];
-                if (entry) {
-                    elements.entryTitleHeader.textContent = `Edit Entry (${formatDisplayDate(currentDate)})`;
-                    quillEditor.setContents(quillEditor.clipboard.convert(entry.content));
-                    elements.editorModal.show();
-                }
-            });
-
-            elements.saveEntryBtn.addEventListener('click', saveEntry);
-
-            // Calendar Navigation Buttons
-            elements.prevMonthBtn.addEventListener('click', () => {
-                calendarViewDate.setMonth(calendarViewDate.getMonth() - 1);
-                renderCalendar(calendarViewDate);
-            });
-
-            elements.nextMonthBtn.addEventListener('click', () => {
-                calendarViewDate.setMonth(calendarViewDate.getMonth() + 1);
-                renderCalendar(calendarViewDate);
-            });
-
-            // Settings Listeners
-            document.querySelectorAll('.color-option').forEach(el => {
-                el.addEventListener('click', () => {
-                    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
-                    el.classList.add('active');
-                    document.body.className = `theme-${el.dataset.theme}`;
-                    saveSettings();
-                });
-            });
-
-            elements.textColorPicker.addEventListener('change', saveSettings);
-            elements.textFontSelect.addEventListener('change', saveSettings);
-
-        </script>
-    </body>
+        await set(diaryRef(currentUID, dateStr), payload);
+        showStatus('Saved ' + dateStr);
+      } catch (err) {
+        console.error(err);
+        showStatus('Save failed.');
+      }
+    }
+
+    async function deleteEntryForDate(dateStr) {
+      if (!currentUID) {
+        showStatus('Sign in first.');
+        return;
+      }
+      try {
+        await remove(diaryRef(currentUID, dateStr));
+        showStatus('Deleted ' + dateStr);
+        clearEditorAndCanvas();
+      } catch (err) {
+        console.error(err);
+        showStatus('Delete failed.');
+      }
+    }
+
+    function loadCanvasFromDataURL(dataUrl) {
+      const img = new Image();
+      img.onload = () => {
+        // reset strokes (we won't be able to reconstruct strokes from image; just draw image)
+        strokes = [];
+        // scale image into canvas logical size
+        ctx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
+        // draw with CSS size coordinates; earlier ctx scaled by devicePixelRatio so use CSS size
+        const cssW = parseFloat(getComputedStyle(drawCanvas).width);
+        const cssH = parseFloat(getComputedStyle(drawCanvas).height);
+        ctx.drawImage(img, 0, 0, cssW, cssH);
+      };
+      img.src = dataUrl;
+    }
+
+    function exportCanvasImage() {
+      const url = drawCanvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `diary-${formatDate(currentDate)}.png`;
+      a.click();
+    }
+
+    function clearEditorAndCanvas() {
+      try { window.quill.setContents([{ insert: '\n' }]); } catch (e) { window.quill.root.innerHTML = ''; }
+      codeBox.value = '';
+      strokes = [];
+      redrawAll();
+    }
+
+    function showStatus(txt) {
+      // small transient status using userIdDisplay as area, then restore UID text
+      const original = currentUID ? `User: ${currentUID}` : 'Not signed in';
+      userIdDisplay.textContent = txt;
+      setTimeout(()=> {
+        userIdDisplay.textContent = currentUID ? `User: ${currentUID}` : original;
+      }, 2500);
+    }
+
+    // Wire UI
+    prevBtn.addEventListener('click', () => {
+      const d = new Date(currentDate);
+      d.setDate(d.getDate() - 1);
+      setDate(d);
+    });
+    nextBtn.addEventListener('click', () => {
+      const d = new Date(currentDate);
+      d.setDate(d.getDate() + 1);
+      setDate(d);
+    });
+    todayBtn.addEventListener('click', () => setDate(new Date()));
+    datePicker.addEventListener('change', () => setDate(parseDateInput(datePicker.value)));
+
+    saveBtn.addEventListener('click', async () => {
+      saveBtn.disabled = true;
+      await saveEntryForDate(formatDate(currentDate));
+      saveBtn.disabled = false;
+    });
+
+    deleteBtn.addEventListener('click', () => {
+      const cm = new bootstrap.Modal(document.getElementById('confirmModal'));
+      document.getElementById('confirmText').textContent = `Delete entry for ${formatDate(currentDate)}?`;
+      document.getElementById('confirmYes').onclick = async () => {
+        await deleteEntryForDate(formatDate(currentDate));
+        cm.hide();
+      };
+      cm.show();
+    });
+
+    signAnonBtn.addEventListener('click', async () => {
+      try {
+        await signInAnonymously(auth);
+      } catch (err) {
+        console.error('Anonymous sign-in failed', err);
+        showStatus('Sign-in failed');
+      }
+    });
+
+    drawToggleBtn.addEventListener('click', () => {
+      drawEnabled = !drawEnabled;
+      drawToggleBtn.classList.toggle('btn-primary', drawEnabled);
+      drawToggleBtn.classList.toggle('btn-ghost', !drawEnabled);
+      drawToggleBtn.textContent = drawEnabled ? 'Draw' : 'View';
+    });
+    clearCanvasBtn.addEventListener('click', () => { strokes = []; redrawAll(); });
+    saveImageBtn.addEventListener('click', exportCanvasImage);
+
+    // Auth handling
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUID = user.uid;
+        userIdDisplay.textContent = `User: ${currentUID}`;
+        // expose for other scripts
+        window.FIREBASE_USER_UID = currentUID;
+        window.RTDB = db;
+        // load today's entry
+        setDate(currentDate);
+      } else {
+        currentUID = null;
+        userIdDisplay.textContent = 'Not signed in';
+        window.FIREBASE_USER_UID = null;
+      }
+    });
+
+    // Boot sequence
+    (async function init() {
+      await loadQuill();
+      resizeCanvasForDevice();
+      wireCanvasEvents();
+      // init date picker to today
+      setDate(new Date());
+      // respond to window resize to maintain crisp canvas
+      window.addEventListener('resize', () => {
+        resizeCanvasForDevice();
+      });
+      // quick hint: try to restore UID from localStorage (if any)
+      const storedUID = localStorage.getItem('userUID');
+      if (storedUID) {
+        // no direct sign-in; but set and try to load if possible
+        currentUID = storedUID;
+        userIdDisplay.textContent = `User: ${currentUID}`;
+      }
+      // Auto anonymous sign-in if not signed in
+      try {
+        if (!auth.currentUser) await signInAnonymously(auth);
+      } catch (err) {
+        console.warn('Auto anonymous sign-in failed', err);
+      }
+    })();
+
+    // Expose quick helpers for debugging
+    window.diary = {
+      save: () => saveEntryForDate(formatDate(currentDate)),
+      load: (d) => loadEntryForDate(d || formatDate(currentDate)),
+      exportCanvas: exportCanvasImage
+    };
+  </script>
+
+  <!-- Bootstrap bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
